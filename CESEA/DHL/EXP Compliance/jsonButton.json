@@ -1,0 +1,50 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json",
+  "elmType": "a",
+  "style": {
+    "padding": "0px 0px",
+    "cursor": "pointer",
+    "border": "solid",
+    "border-color": "#0078d4",
+    "color": "#0078d4",
+    "font-weight": "550",
+    "background-color": "#ffffff",
+    "text-decoration": "none",
+    "font-size": "9px",
+    "width": "70px",
+    "border-radius": "16px",
+    "margin": "1px 1px 1px 1px"
+  },
+  "attributes": {
+    "class": "sp-css-backgroundColor-BgLightGray sp-field-borderAllRegular sp-field-borderAllSolid sp-css-borderColor-LightGrayFont",
+    "target": "_blank",
+    "href": "='https://apps.powerapps.com/play/e/default-b6202ddc-5f7f-4d41-9f09-4d763f1e29a0/a/582e2063-27f5-4ddb-ab58-74b04d91176a?tenantId=b6202ddc-5f7f-4d41-9f09-4d763f1e29a0&hint=96bf84e9-6f31-497b-882e-da77dbe28500&sourcetime=1697913200079&ID=' + [$ID]"
+  },
+  "children": [
+    {
+      "elmType": "span",
+      "style": {
+        "line-height": "16px",
+        "height": "14px",
+        "display": "inherit",
+        "padding": "0px 5px"
+      },
+      "attributes": {
+        "iconName": "edit",
+        "class": "sp-css-color-LightGrayFont"
+      }
+    },
+    {
+      "elmType": "span",
+      "style": {
+        "overflow": "hidden",
+        "text-overflow": "ellipsis",
+        "padding": "0px 0px"
+      },
+      "txtContent": "Open",
+      "attributes": {
+        "class": "sp-field-fontSizeSmall sp-css-color-LightGrayFont sp-field-bold"
+      }
+    }
+  ]
+}

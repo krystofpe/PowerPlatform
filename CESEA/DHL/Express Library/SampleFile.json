@@ -1,0 +1,128 @@
+{
+    "headers": {
+        "Transfer-Encoding": "chunked",
+        "Retry-After": "21600",
+        "Vary": "Origin,Accept-Encoding",
+        "X-NetworkStatistics": "0,4204800,0,0,12518,0,19971",
+        "X-SharePointHealthScore": "0",
+        "X-MS-SPConnector": "1",
+        "X-SP-SERVERSTATE": "ReadOnly=0",
+        "DATASERVICEVERSION": "3.0",
+        "SPClientServiceRequestDuration": "298",
+        "SPRequestDuration": "298",
+        "X-DataBoundary": "EU",
+        "X-1DSCollectorUrl": "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/",
+        "X-AriaCollectorURL": "https://eu-mobile.events.data.microsoft.com/Collector/3.0",
+        "SPRequestGuid": "1d95ef0e-9237-43cb-9ba7-93559ac7e51e",
+        "request-id": "1d95ef0e-9237-43cb-9ba7-93559ac7e51e",
+        "MS-CV": "Du+VHTeSy0Obp5NVmsflHg.0",
+        "Strict-Transport-Security": "max-age=31536000",
+        "X-FRAME-OPTIONS": "SAMEORIGIN",
+        "Content-Security-Policy": "frame-ancestors 'self' teams.microsoft.com *.teams.microsoft.com *.skype.com *.teams.microsoft.us local.teams.office.com *.powerapps.com *.yammer.com *.officeapps.live.com *.office.com *.stream.azure-test.net *.microsoftstream.com *.dynamics.com *.microsoft.com onedrive.live.com *.onedrive.live.com securebroker.sharepointonline.com;",
+        "MicrosoftSharePointTeamServices": "16.0.0.23710",
+        "X-Content-Type-Options": "nosniff",
+        "X-MS-InvokeApp": "1; RequireReadOnly",
+        "Timing-Allow-Origin": "*",
+        "x-ms-apihub-cached-response": "true",
+        "x-ms-apihub-obo": "false",
+        "Cache-Control": "max-age=0, private",
+        "Date": "Tue, 30 May 2023 15:07:54 GMT",
+        "Location": "https://flow-apim-europe-002-westeurope-01.azure-apim.net/apim/sharepointonline/shared-sharepointonl-72963ffb-1e1d-4a90-87b8-89b48eaa1bf0/datasets/https%253A%252F%252Fdevcesea.sharepoint.com%252Fsites%252FDHLExpressLibrary/tables/7df45e76-9994-4489-befe-6430bc484a82/onupdatedfileitems?triggerstatecl=MTszOzdkZjQ1ZTc2LTk5OTQtNDQ4OS1iZWZlLTY0MzBiYzQ4NGE4Mjs2MzgyMTA1NjA3MjQ1NzAwMDA7NDczNjU3OTc%3d",
+        "P3P": "CP=\"ALL IND DSP COR ADM CONo CUR CUSo IVAo IVDo PSA PSD TAI TELo OUR SAMo CNT COM INT NAV ONL PHY PRE PUR UNI\"",
+        "X-AspNet-Version": "4.0.30319",
+        "X-Powered-By": "ASP.NET",
+        "Content-Type": "application/json; charset=utf-8",
+        "Expires": "Mon, 15 May 2023 15:07:54 GMT",
+        "Last-Modified": "Tue, 30 May 2023 15:07:54 GMT",
+        "Content-Length": "7248"
+    },
+    "body": {
+        "@odata.etag": "\"14\"",
+        "ItemInternalId": "5",
+        "ID": 5,
+        "Title": "a",
+        "ELDocumentType": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+            "Id": -1,
+            "Value": "a"
+        },
+        "ELDocumentType#Id": -1,
+        "ELExpressFunctions": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+            "Id": -1,
+            "Value": "a"
+        },
+        "ELExpressFunctions#Id": -1,
+        "ELDomains": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+            "Id": -1,
+            "Value": "a"
+        },
+        "ELDomains#Id": -1,
+        "ELEndToEndProcesses": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+            "Id": -1,
+            "Value": "a"
+        },
+        "ELEndToEndProcesses#Id": -1,
+        "ELApprovedBy": [],
+        "ELApprovedBy@odata.type": "#Collection(Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser)",
+        "ELApprovedBy#Claims": [],
+        "ELApprovedBy#Claims@odata.type": "#Collection(String)",
+        "ELMaintainedBy": [],
+        "ELMaintainedBy@odata.type": "#Collection(Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser)",
+        "ELMaintainedBy#Claims": [],
+        "ELMaintainedBy#Claims@odata.type": "#Collection(String)",
+        "ELStatus": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+            "Id": 2,
+            "Value": "Reviewed"
+        },
+        "ELStatus#Id": 2,
+        "Created": "2023-05-30T05:10:45Z",
+        "Author": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+            "Claims": "i:0#.f|membership|lukas.svec@dev-cesea.cz",
+            "DisplayName": "Lukáš Švec",
+            "Email": "lukas.svec@dev-cesea.cz",
+            "Picture": "https://devcesea.sharepoint.com/sites/DHLExpressLibrary/_layouts/15/UserPhoto.aspx?Size=L&AccountName=lukas.svec@dev-cesea.cz",
+            "Department": null,
+            "JobTitle": null
+        },
+        "Author#Claims": "i:0#.f|membership|lukas.svec@dev-cesea.cz",
+        "Modified": "2023-05-30T15:07:24Z",
+        "Editor": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+            "Claims": "i:0#.f|membership|krystof.penka@dev-cesea.cz",
+            "DisplayName": "Kryštof Pěnka DEV CESEA",
+            "Email": "krystof.penka@dev-cesea.cz",
+            "Picture": "https://devcesea.sharepoint.com/sites/DHLExpressLibrary/_layouts/15/UserPhoto.aspx?Size=L&AccountName=krystof.penka@dev-cesea.cz",
+            "Department": "",
+            "JobTitle": ""
+        },
+        "Editor#Claims": "i:0#.f|membership|krystof.penka@dev-cesea.cz",
+        "OData__DisplayName": "",
+        "{Identifier}": "DraftDocuments%252fboris.PNG",
+        "{IsFolder}": false,
+        "{Thumbnail}": {
+            "Large": "https://westeurope1-mediap.svc.ms/transform/thumbnail?provider=spo&inputFormat=PNG&cs=fFNQTw&docid=https%3a%2f%2fdevcesea.sharepoint.com%3a443%2f_api%2fv2.0%2fdrives%2fb!onOKA2In80i22Wpcst9qe1viN3L8efdPrt80Mm504iF2XvR9lJmJRL7-ZDC8SEqC%2fitems%2f013J7HWN67LPKOOEMVXJCKKR2W42F44ZPQ%3fversion%3dPublished&access_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAvZGV2Y2VzZWEuc2hhcmVwb2ludC5jb21AYjYyMDJkZGMtNWY3Zi00ZDQxLTlmMDktNGQ3NjNmMWUyOWEwIiwiaXNzIjoiMDAwMDAwMDMtMDAwMC0wZmYxLWNlMDAtMDAwMDAwMDAwMDAwIiwibmJmIjoiMTY4NTQ1ODgwMCIsImV4cCI6IjE2ODU0ODA0MDAiLCJlbmRwb2ludHVybCI6IjQ0TmtiaU1GY2VuZ3gxaVBiUzZXMmxSNkJqUGYwMFQyMTZMR2draTJxNnc9IiwiZW5kcG9pbnR1cmxMZW5ndGgiOiIxMTUiLCJpc2xvb3BiYWNrIjoiVHJ1ZSIsInZlciI6Imhhc2hlZHByb29mdG9rZW4iLCJzaXRlaWQiOiJNRE00WVRjellUSXRNamMyTWkwME9HWXpMV0kyWkRrdE5tRTFZMkl5WkdZMllUZGkiLCJhcHBfZGlzcGxheW5hbWUiOiJBcHAgU2VydmljZSIsImdpdmVuX25hbWUiOiJLcnnFoXRvZiIsImZhbWlseV9uYW1lIjoiUMSbbmthIiwibmFtZWlkIjoiMCMuZnxtZW1iZXJzaGlwfGtyeXN0b2YucGVua2FAZGV2LWNlc2VhLmN6IiwibmlpIjoibWljcm9zb2Z0LnNoYXJlcG9pbnQiLCJpc3VzZXIiOiJ0cnVlIiwiY2FjaGVrZXkiOiIwaC5mfG1lbWJlcnNoaXB8MTAwMzIwMDI0YjhiNTYxNUBsaXZlLmNvbSIsInNoYXJpbmdpZCI6ImVmMjgwNjljLWY2YzYtNGVkMi1hOWRmLWY0YjIwODYyZTQwOCIsInV0aSI6Im05akpZQUJYVVVTM2ZEa05aT1UxQUEiLCJ0dCI6IjAiLCJpcGFkZHIiOiIyMC44Ni45My4zNSJ9.Eog7pqzutQCUJkD5yOkvBywt0ClLAXdyLzc6OsCluts&width=800&height=800",
+            "Medium": "https://westeurope1-mediap.svc.ms/transform/thumbnail?provider=spo&inputFormat=PNG&cs=fFNQTw&docid=https%3a%2f%2fdevcesea.sharepoint.com%3a443%2f_api%2fv2.0%2fdrives%2fb!onOKA2In80i22Wpcst9qe1viN3L8efdPrt80Mm504iF2XvR9lJmJRL7-ZDC8SEqC%2fitems%2f013J7HWN67LPKOOEMVXJCKKR2W42F44ZPQ%3fversion%3dPublished&access_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAvZGV2Y2VzZWEuc2hhcmVwb2ludC5jb21AYjYyMDJkZGMtNWY3Zi00ZDQxLTlmMDktNGQ3NjNmMWUyOWEwIiwiaXNzIjoiMDAwMDAwMDMtMDAwMC0wZmYxLWNlMDAtMDAwMDAwMDAwMDAwIiwibmJmIjoiMTY4NTQ1ODgwMCIsImV4cCI6IjE2ODU0ODA0MDAiLCJlbmRwb2ludHVybCI6IjQ0TmtiaU1GY2VuZ3gxaVBiUzZXMmxSNkJqUGYwMFQyMTZMR2draTJxNnc9IiwiZW5kcG9pbnR1cmxMZW5ndGgiOiIxMTUiLCJpc2xvb3BiYWNrIjoiVHJ1ZSIsInZlciI6Imhhc2hlZHByb29mdG9rZW4iLCJzaXRlaWQiOiJNRE00WVRjellUSXRNamMyTWkwME9HWXpMV0kyWkRrdE5tRTFZMkl5WkdZMllUZGkiLCJhcHBfZGlzcGxheW5hbWUiOiJBcHAgU2VydmljZSIsImdpdmVuX25hbWUiOiJLcnnFoXRvZiIsImZhbWlseV9uYW1lIjoiUMSbbmthIiwibmFtZWlkIjoiMCMuZnxtZW1iZXJzaGlwfGtyeXN0b2YucGVua2FAZGV2LWNlc2VhLmN6IiwibmlpIjoibWljcm9zb2Z0LnNoYXJlcG9pbnQiLCJpc3VzZXIiOiJ0cnVlIiwiY2FjaGVrZXkiOiIwaC5mfG1lbWJlcnNoaXB8MTAwMzIwMDI0YjhiNTYxNUBsaXZlLmNvbSIsInNoYXJpbmdpZCI6ImVmMjgwNjljLWY2YzYtNGVkMi1hOWRmLWY0YjIwODYyZTQwOCIsInV0aSI6Im05akpZQUJYVVVTM2ZEa05aT1UxQUEiLCJ0dCI6IjAiLCJpcGFkZHIiOiIyMC44Ni45My4zNSJ9.Eog7pqzutQCUJkD5yOkvBywt0ClLAXdyLzc6OsCluts&width=176&height=176",
+            "Small": "https://westeurope1-mediap.svc.ms/transform/thumbnail?provider=spo&inputFormat=PNG&cs=fFNQTw&docid=https%3a%2f%2fdevcesea.sharepoint.com%3a443%2f_api%2fv2.0%2fdrives%2fb!onOKA2In80i22Wpcst9qe1viN3L8efdPrt80Mm504iF2XvR9lJmJRL7-ZDC8SEqC%2fitems%2f013J7HWN67LPKOOEMVXJCKKR2W42F44ZPQ%3fversion%3dPublished&access_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAvZGV2Y2VzZWEuc2hhcmVwb2ludC5jb21AYjYyMDJkZGMtNWY3Zi00ZDQxLTlmMDktNGQ3NjNmMWUyOWEwIiwiaXNzIjoiMDAwMDAwMDMtMDAwMC0wZmYxLWNlMDAtMDAwMDAwMDAwMDAwIiwibmJmIjoiMTY4NTQ1ODgwMCIsImV4cCI6IjE2ODU0ODA0MDAiLCJlbmRwb2ludHVybCI6IjQ0TmtiaU1GY2VuZ3gxaVBiUzZXMmxSNkJqUGYwMFQyMTZMR2draTJxNnc9IiwiZW5kcG9pbnR1cmxMZW5ndGgiOiIxMTUiLCJpc2xvb3BiYWNrIjoiVHJ1ZSIsInZlciI6Imhhc2hlZHByb29mdG9rZW4iLCJzaXRlaWQiOiJNRE00WVRjellUSXRNamMyTWkwME9HWXpMV0kyWkRrdE5tRTFZMkl5WkdZMllUZGkiLCJhcHBfZGlzcGxheW5hbWUiOiJBcHAgU2VydmljZSIsImdpdmVuX25hbWUiOiJLcnnFoXRvZiIsImZhbWlseV9uYW1lIjoiUMSbbmthIiwibmFtZWlkIjoiMCMuZnxtZW1iZXJzaGlwfGtyeXN0b2YucGVua2FAZGV2LWNlc2VhLmN6IiwibmlpIjoibWljcm9zb2Z0LnNoYXJlcG9pbnQiLCJpc3VzZXIiOiJ0cnVlIiwiY2FjaGVrZXkiOiIwaC5mfG1lbWJlcnNoaXB8MTAwMzIwMDI0YjhiNTYxNUBsaXZlLmNvbSIsInNoYXJpbmdpZCI6ImVmMjgwNjljLWY2YzYtNGVkMi1hOWRmLWY0YjIwODYyZTQwOCIsInV0aSI6Im05akpZQUJYVVVTM2ZEa05aT1UxQUEiLCJ0dCI6IjAiLCJpcGFkZHIiOiIyMC44Ni45My4zNSJ9.Eog7pqzutQCUJkD5yOkvBywt0ClLAXdyLzc6OsCluts&width=96&height=96"
+        },
+        "{Link}": "https://devcesea.sharepoint.com/sites/DHLExpressLibrary/DraftDocuments/boris.PNG",
+        "{Name}": "boris",
+        "{FilenameWithExtension}": "boris.PNG",
+        "{Path}": "DraftDocuments/",
+        "{FullPath}": "DraftDocuments/boris.PNG",
+        "{ContentType}": {
+            "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedContentType",
+            "Id": "0x01010011667D40A6D36A4184303C944D7D9CEA00948A3689FA95FB41BB7522CFA800E0C5",
+            "Name": "Draft document"
+        },
+        "{ContentType}#Id": "0x01010011667D40A6D36A4184303C944D7D9CEA00948A3689FA95FB41BB7522CFA800E0C5",
+        "{IsCheckedOut}": false,
+        "{VersionNumber}": "11.0",
+        "{TriggerWindowStartToken}": "MTszOzdkZjQ1ZTc2LTk5OTQtNDQ4OS1iZWZlLTY0MzBiYzQ4NGE4Mjs2MzgyMTA1NjAwOTE2NzAwMDA7NDczNjU3ODY=",
+        "{TriggerWindowEndToken}": "MTszOzdkZjQ1ZTc2LTk5OTQtNDQ4OS1iZWZlLTY0MzBiYzQ4NGE4Mjs2MzgyMTA1NjA3MjQ1NzAwMDA7NDczNjU3OTc="
+    }
+}

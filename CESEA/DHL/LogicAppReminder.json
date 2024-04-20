@@ -1,0 +1,317 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Approver_EMail": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "ApproverEMail",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Approver_Title": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "ApproverTitle",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Approver_EMail": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "For_each": {
+                "actions": {
+                    "Get_RegionsRCO_Item": {
+                        "inputs": {
+                            "body": {
+                                "method": "GET",
+                                "uri": "@{concat('/_api/web/lists(''',parameters('RegionsRCOListGUID'),''')/Items?$filter=Region eq ''',items('For_each')?['Region']?['Value'],'''','&$select=*,RCO/Title,RCO/EMail,RegionalCEO/Title,RegionalCEO/EMail,Aviation/Title,Aviation/EMail&$expand=RCO,RegionalCEO,Aviation')}"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                        },
+                        "runAfter": {},
+                        "type": "ApiConnection"
+                    },
+                    "Is_AVIATION": {
+                        "actions": {
+                            "Approver_EMail_AVIATION": {
+                                "inputs": {
+                                    "name": "ApproverEMail",
+                                    "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['Aviation']?['EMail']}"
+                                },
+                                "runAfter": {},
+                                "type": "SetVariable"
+                            },
+                            "Approver_Title_AVIATION": {
+                                "inputs": {
+                                    "name": "ApproverTitle",
+                                    "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['Aviation']?['Title']}"
+                                },
+                                "runAfter": {
+                                    "Approver_EMail_AVIATION": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "SetVariable"
+                            }
+                        },
+                        "else": {
+                            "actions": {
+                                "Approver_EMail_RegionalRCO": {
+                                    "inputs": {
+                                        "name": "ApproverEMail",
+                                        "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RegionalCEO']?['EMail']}"
+                                    },
+                                    "runAfter": {},
+                                    "type": "SetVariable"
+                                },
+                                "Approver_Title_RegionalRCO": {
+                                    "inputs": {
+                                        "name": "ApproverTitle",
+                                        "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RegionalCEO']?['Title']}"
+                                    },
+                                    "runAfter": {
+                                        "Approver_EMail_RegionalRCO": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "SetVariable"
+                                }
+                            }
+                        },
+                        "expression": {
+                            "and": [
+                                {
+                                    "equals": [
+                                        "@items('For_each')?['EntityType']?['Value']",
+                                        "Aviation"
+                                    ]
+                                }
+                            ]
+                        },
+                        "runAfter": {
+                            "Get_RegionsRCO_Item": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "If"
+                    },
+                    "Is_Membership": {
+                        "actions": {
+                            "Send_reminder_to_approver_MEMBERSHIP": {
+                                "inputs": {
+                                    "body": {
+                                        "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{variables('ApproverEMail')}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{variables('ApproverTitle')}<\\/p><p>This is a friendly reminder to complete the below workflow task<\\/p><p>-----------------------<\\/p><p>Dear @{variables('ApproverTitle')}<\\/p><p>A new Membership was added to the SharePoint of Competition Compliance – Controls on Membership and Controls on Engaging with Competitors for your review and your approval: <strong>@{items('For_each')?['OrganizationName']}<\\/strong><br \\/>Membership Category: <strong>@{items('For_each')?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('EditFormURL'),items('For_each')?['ID'])}'>here<\\/a> for details and to respond to the task.<\\/p>\",  \n\t\t\"Subject\": \"REMINDER SharePoint approval of new Membership\"  \n\t}\n}",
+                                        "headers": {
+                                            "accept": "application/json;odata=verbose",
+                                            "content-type": "application/json;odata=verbose"
+                                        },
+                                        "method": "POST",
+                                        "uri": "@parameters('EmailEndpoint')"
+                                    },
+                                    "host": {
+                                        "connection": {
+                                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                        }
+                                    },
+                                    "method": "post",
+                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                },
+                                "runAfter": {},
+                                "type": "ApiConnection"
+                            }
+                        },
+                        "else": {
+                            "actions": {
+                                "Send_reminder_to_approver_ENGAGING": {
+                                    "inputs": {
+                                        "body": {
+                                            "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{variables('ApproverEMail')}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{variables('ApproverTitle')}<\\/p><p>This is a friendly reminder to complete the below workflow task<\\/p><p>-----------------------<\\/p><p>Dear @{variables('ApproverTitle')}<\\/p><p>A meeting/ engagement involving competitors approval request was added to the SharePoint of Competition Compliance – Controls on Membership and Controls on Engaging with Competitors for your review and your approval: <strong>@{items('For_each')?['OrganizationName']}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('EditFormURL'),items('For_each')?['ID'])}'>here<\\/a> for details and to respond to the task.<\\/p>\",  \n\t\t\"Subject\": \"REMINDER SharePoint approval of meeting/ engagement involving competitors\"  \n\t}\n}",
+                                            "headers": {
+                                                "accept": "application/json;odata=verbose",
+                                                "content-type": "application/json;odata=verbose"
+                                            },
+                                            "method": "POST",
+                                            "uri": "@parameters('EmailEndpoint')"
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                    },
+                                    "runAfter": {},
+                                    "type": "ApiConnection"
+                                }
+                            }
+                        },
+                        "expression": {
+                            "and": [
+                                {
+                                    "equals": [
+                                        "@items('For_each')?['EngagementType']?['Value']",
+                                        "Membership"
+                                    ]
+                                }
+                            ]
+                        },
+                        "runAfter": {
+                            "Is_AVIATION": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "If"
+                    },
+                    "Set_new_reminder_date": {
+                        "inputs": {
+                            "body": {
+                                "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   NextReminderDate:\"@{formatDateTime(addDays(utcNow(),7),'yyyy-MM-dd')}\"\n }",
+                                "headers": {
+                                    "IF-MATCH": "*",
+                                    "accept": "application/json;odata=verbose",
+                                    "content-type": "application/json;odata=verbose"
+                                },
+                                "method": "PATCH",
+                                "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',items('For_each')?['ID'],')')}"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                        },
+                        "runAfter": {
+                            "Is_Membership": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "ApiConnection"
+                    }
+                },
+                "foreach": "@body('Get_items_for_reminder')?['value']",
+                "runAfter": {
+                    "Get_items_for_reminder": [
+                        "Succeeded"
+                    ]
+                },
+                "runtimeConfiguration": {
+                    "concurrency": {
+                        "repetitions": 1
+                    }
+                },
+                "type": "Foreach"
+            },
+            "Get_items_for_reminder": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('MembershipListGUID')))}/items",
+                    "queries": {
+                        "$filter": "(ApprovalStatus eq 'Await Aviation approval' or ApprovalStatus eq 'Await CEO approval') and NextReminderDate eq '@{formatDateTime(utcNow(),'yyyy-MM-dd')}'"
+                    }
+                },
+                "runAfter": {
+                    "Approver_Title": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            },
+            "EditFormURL": {
+                "defaultValue": "/SitePages/Membership-FORM.aspx?FormMode=Edit&ItemId=",
+                "type": "String"
+            },
+            "EmailEndpoint": {
+                "defaultValue": "/_api/SP.Utilities.Utility.SendEmail",
+                "type": "String"
+            },
+            "MembershipListGUID": {
+                "defaultValue": "bac61f95-dd1c-4d85-bf79-5e4c1f14efe3",
+                "type": "String"
+            },
+            "RegionsRCOListGUID": {
+                "defaultValue": "7fa670f8-0f45-45ca-a64d-2fee82c5a019",
+                "type": "String"
+            },
+            "ShPSiteURL": {
+                "defaultValue": "https://dpdhl.sharepoint.com/sites/EXPCompetitionCompliance",
+                "type": "String"
+            }
+        },
+        "triggers": {
+            "Recurrence": {
+                "evaluatedRecurrence": {
+                    "frequency": "Day",
+                    "interval": 1,
+                    "schedule": {
+                        "hours": [
+                            "9"
+                        ],
+                        "minutes": [
+                            0
+                        ]
+                    },
+                    "timeZone": "Central Europe Standard Time"
+                },
+                "recurrence": {
+                    "frequency": "Day",
+                    "interval": 1,
+                    "schedule": {
+                        "hours": [
+                            "9"
+                        ],
+                        "minutes": [
+                            0
+                        ]
+                    },
+                    "timeZone": "Central Europe Standard Time"
+                },
+                "type": "Recurrence"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "sharepointonline": {
+                    "connectionId": "/subscriptions/ab219ef3-3068-4d44-8026-1b72f5ad28c9/resourceGroups/ITS-ECC-9010/providers/Microsoft.Web/connections/sharepointonline",
+                    "connectionName": "sharepointonline",
+                    "id": "/subscriptions/ab219ef3-3068-4d44-8026-1b72f5ad28c9/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+                }
+            }
+        }
+    }
+}

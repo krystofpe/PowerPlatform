@@ -1,0 +1,140 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Email_notification": {
+                "inputs": {
+                    "body": {
+                        "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{body('Get_Entity_Item')?['CCC']?['Email']}\"]  \n\t\t},\n\"BCC\": {  \n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear Country Compliance Coordinator<\\/p><p>Please be aware that your Membership has expired: <strong>@{triggerBody()?['OrganizationName']}<\\/strong><br \\/><a href='@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}'>@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}<\\/a><\\/p><p>In case this membership should be re-activated please edit the Membership item. The Membership request will then run through the official approval process again.<\\/p><p>If there are any questions, do not hesitate to contact your Regional Compliance Officer.<\\/p>\",  \n\t\t\"Subject\": \"Expired membership on SharePoint of Competition Compliance – Controls on Memberships and Controls on Engaging with Competitors\"  \n\t}\n}",
+                        "headers": {
+                            "accept": "application/json;odata=verbose",
+                            "content-type": "application/json;odata=verbose"
+                        },
+                        "method": "POST",
+                        "uri": "@parameters('EmailEndpoint')"
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                },
+                "runAfter": {
+                    "Get_Entity_Item": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            },
+            "Get_Entity_Item": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('EntityListGUID')))}/items/@{encodeURIComponent(triggerBody()?['EntityName']?['Id'])}"
+                },
+                "runAfter": {},
+                "type": "ApiConnection"
+            },
+            "Set_request_as_notified_REST_API": {
+                "inputs": {
+                    "body": {
+                        "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ExpiredNotification: false\n }",
+                        "headers": {
+                            "IF-MATCH": "*",
+                            "accept": "application/json;odata=verbose",
+                            "content-type": "application/json;odata=verbose"
+                        },
+                        "method": "PATCH",
+                        "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                },
+                "runAfter": {
+                    "Email_notification": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            },
+            "DisplayFormURL": {
+                "defaultValue": "/SitePages/Membership-FORM.aspx?FormMode=Display&ItemId=",
+                "type": "String"
+            },
+            "EmailEndpoint": {
+                "defaultValue": "/_api/SP.Utilities.Utility.SendEmail",
+                "type": "String"
+            },
+            "EntityListGUID": {
+                "defaultValue": "f99164e3-76ca-4c18-812d-9c2b2c28287e",
+                "type": "String"
+            },
+            "MembershipListGUID": {
+                "defaultValue": "bac61f95-dd1c-4d85-bf79-5e4c1f14efe3",
+                "type": "String"
+            },
+            "ShPSiteURL": {
+                "defaultValue": "https://dpdhl.sharepoint.com/sites/EXPCompetitionCompliance",
+                "type": "String"
+            }
+        },
+        "triggers": {
+            "When_item_is_UPDATED_-_EXPIRED": {
+                "conditions": [
+                    {
+                        "expression": "@and(equals('Membership',triggerBody()?['EngagementType']?['Value']),equals(true,triggerBody()?['ExpiredNotification']))"
+                    }
+                ],
+                "evaluatedRecurrence": {
+                    "frequency": "Minute",
+                    "interval": 3
+                },
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('MembershipListGUID')))}/onchangeditems"
+                },
+                "recurrence": {
+                    "frequency": "Minute",
+                    "interval": 3
+                },
+                "splitOn": "@triggerBody()?['value']",
+                "type": "ApiConnection"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "sharepointonline": {
+                    "connectionId": "/subscriptions/ab219ef3-3068-4d44-8026-1b72f5ad28c9/resourceGroups/ITS-ECC-9010/providers/Microsoft.Web/connections/sharepointonline",
+                    "connectionName": "sharepointonline",
+                    "id": "/subscriptions/ab219ef3-3068-4d44-8026-1b72f5ad28c9/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+                }
+            }
+        }
+    }
+}

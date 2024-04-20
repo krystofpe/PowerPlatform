@@ -1,0 +1,1326 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Approval_section": {
+                "actions": {
+                    "Participants_already_registered": {
+                        "actions": {
+                            "Send_mail_about_new_item_without_approval": {
+                                "inputs": {
+                                    "body": {
+                                        "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Thank you for filing the record in the SharePoint. As both the membership and participant(s) pertaining to your request have already been pre-approved in the system by the relevant Regional CEO/ authorized approver and are still valid, please be advised that for each & every such subsequent meeting/ engagement involving competitors, you should seek written approval by the relevant Country Manager or Functional Head.<\\/p><p>Records of such approval can be filed locally outside of this SharePoint. However please ensure they can be made available upon requests for audit purposes.<\\/p>\",  \n\t\t\"Subject\": \"SharePoint submission confirmation of meeting/ engagement involving competitors\"  \n\t}\n}",
+                                        "headers": {
+                                            "accept": "application/json;odata=verbose",
+                                            "content-type": "application/json;odata=verbose"
+                                        },
+                                        "method": "POST",
+                                        "uri": "@parameters('EmailEndpoint')"
+                                    },
+                                    "host": {
+                                        "connection": {
+                                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                        }
+                                    },
+                                    "method": "post",
+                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                },
+                                "runAfter": {},
+                                "type": "ApiConnection"
+                            },
+                            "Set_as_approved": {
+                                "inputs": {
+                                    "body": {
+                                        "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ApprovalStatus:\"Approved\",\n   MembershipStatus:\"Active\",\n   Updated: false\n }",
+                                        "headers": {
+                                            "IF-MATCH": "*",
+                                            "accept": "application/json;odata=verbose",
+                                            "content-type": "application/json;odata=verbose"
+                                        },
+                                        "method": "PATCH",
+                                        "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                                    },
+                                    "host": {
+                                        "connection": {
+                                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                        }
+                                    },
+                                    "method": "post",
+                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                },
+                                "runAfter": {
+                                    "Send_mail_about_new_item_without_approval": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "ApiConnection"
+                            }
+                        },
+                        "else": {
+                            "actions": {
+                                "Get_RegionsRCO_Item": {
+                                    "inputs": {
+                                        "body": {
+                                            "method": "GET",
+                                            "uri": "@{concat('/_api/web/lists(''',parameters('RegionsRCOListGUID'),''')/Items?$filter=Region eq ''',triggerBody()?['Region']?['Value'],'''','&$select=*,RCO/Title,RCO/EMail,RCO/ID,RegionalCEO/Title,RegionalCEO/EMail,RegionalCEO/ID,Aviation/Title,Aviation/EMail,Aviation/ID&$expand=RCO,RegionalCEO,Aviation')}"
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                    },
+                                    "runAfter": {},
+                                    "type": "ApiConnection"
+                                },
+                                "Is_AVIATION": {
+                                    "actions": {
+                                        "Approver_EMail_AVIATION": {
+                                            "inputs": {
+                                                "name": "ApproverEMail",
+                                                "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['Aviation']?['EMail']}"
+                                            },
+                                            "runAfter": {},
+                                            "type": "SetVariable"
+                                        },
+                                        "Approver_ID_AVIATION": {
+                                            "inputs": {
+                                                "name": "ApproverID",
+                                                "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['Aviation']?['ID']}"
+                                            },
+                                            "runAfter": {
+                                                "Await_Approval_Status_AVIATION": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "SetVariable"
+                                        },
+                                        "Approver_Title_AVIATION": {
+                                            "inputs": {
+                                                "name": "ApproverTitle",
+                                                "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['Aviation']?['Title']}"
+                                            },
+                                            "runAfter": {
+                                                "Approver_EMail_AVIATION": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "SetVariable"
+                                        },
+                                        "Await_Approval_Status_AVIATION": {
+                                            "inputs": {
+                                                "name": "AwaitApprovalStatus",
+                                                "value": "Await Aviation approval"
+                                            },
+                                            "runAfter": {
+                                                "Approver_Title_AVIATION": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "SetVariable"
+                                        }
+                                    },
+                                    "else": {
+                                        "actions": {
+                                            "Approver_EMail_RegionalRCO": {
+                                                "inputs": {
+                                                    "name": "ApproverEMail",
+                                                    "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RegionalCEO']?['EMail']}"
+                                                },
+                                                "runAfter": {},
+                                                "type": "SetVariable"
+                                            },
+                                            "Approver_ID_CEO": {
+                                                "inputs": {
+                                                    "name": "ApproverID",
+                                                    "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RegionalCEO']?['ID']}"
+                                                },
+                                                "runAfter": {
+                                                    "Await_Approval_Status_CEO": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Approver_Title_RegionalRCO": {
+                                                "inputs": {
+                                                    "name": "ApproverTitle",
+                                                    "value": "@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RegionalCEO']?['Title']}"
+                                                },
+                                                "runAfter": {
+                                                    "Approver_EMail_RegionalRCO": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            },
+                                            "Await_Approval_Status_CEO": {
+                                                "inputs": {
+                                                    "name": "AwaitApprovalStatus",
+                                                    "value": "Await CEO approval"
+                                                },
+                                                "runAfter": {
+                                                    "Approver_Title_RegionalRCO": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            }
+                                        }
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "equals": [
+                                                    "@triggerBody()?['EntityType']?['Value']",
+                                                    "Aviation"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "runAfter": {
+                                        "Get_RegionsRCO_Item": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "If"
+                                },
+                                "WFStatus": {
+                                    "cases": {
+                                        "Approved": {
+                                            "actions": {
+                                                "Approved_item_is_Membership": {
+                                                    "actions": {
+                                                        "Send_mail_to_author_about_APPROVED_MEMBERSHIP": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Please be informed that your submission of the new Membership <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong> was <strong>approved<\\/strong> by your Regional CEO and recorded in the SharePoint of Competition Compliance - Controls on Membership and Controls on Engaging with Competitors<br \\/>Comments: <strong>@{triggerBody()?['RejectComment']}<\\/strong><br \\/>Membership Category: <strong>@{triggerBody()?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}'>here<\\/a> to view the record.<br \\/>Please also ensure that this record is maintained up-to-date and accurate. Any expired membership will need to go through the approval process of Competition Compliance - Controls on Membership and Controls on Engaging with Competitors again.<\\/p>\",  \n\t\t\"Subject\": \"Your Membership request has been approved\"  \n\t}\n}",
+                                                                    "headers": {
+                                                                        "accept": "application/json;odata=verbose",
+                                                                        "content-type": "application/json;odata=verbose"
+                                                                    },
+                                                                    "method": "POST",
+                                                                    "uri": "@parameters('EmailEndpoint')"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                            },
+                                                            "runAfter": {},
+                                                            "type": "ApiConnection"
+                                                        }
+                                                    },
+                                                    "else": {
+                                                        "actions": {
+                                                            "Send_mail_to_author_about_APPROVED_ENGAGING": {
+                                                                "inputs": {
+                                                                    "body": {
+                                                                        "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Please be informed that your submission of the meeting/ engagement involving competitors <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong> was <strong>approved<\\/strong> by your Regional CEO and recorded in the SharePoint of Competition Compliance - Controls on Membership and Controls on Engaging with Competitors<br \\/>Comments: <strong>@{triggerBody()?['RejectComment']}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}'>here<\\/a> to view the record.<br \\/>Please also ensure that this record is maintained up-to-date and accurate. Any other meeting/ engagement involving competitors will need to go through the approval process of Competition Compliance - Controls on Membership and Controls on Engaging with Competitors again.<\\/p>\",  \n\t\t\"Subject\": \"Your meeting/ engagement involving competitors request has been approved\"  \n\t}\n}",
+                                                                        "headers": {
+                                                                            "accept": "application/json;odata=verbose",
+                                                                            "content-type": "application/json;odata=verbose"
+                                                                        },
+                                                                        "method": "POST",
+                                                                        "uri": "@parameters('EmailEndpoint')"
+                                                                    },
+                                                                    "host": {
+                                                                        "connection": {
+                                                                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                        }
+                                                                    },
+                                                                    "method": "post",
+                                                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "ApiConnection"
+                                                            }
+                                                        }
+                                                    },
+                                                    "expression": {
+                                                        "and": [
+                                                            {
+                                                                "equals": [
+                                                                    "@triggerBody()?['EngagementType']?['Value']",
+                                                                    "Membership"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "runAfter": {
+                                                        "Set_request_to_approved_REST_API": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "If"
+                                                },
+                                                "Set_request_to_approved_REST_API": {
+                                                    "inputs": {
+                                                        "body": {
+                                                            "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ApprovalStatus:\"Approved\",\n   MembershipStatus:\"Active\",\n   Updated: false\n }",
+                                                            "headers": {
+                                                                "IF-MATCH": "*",
+                                                                "accept": "application/json;odata=verbose",
+                                                                "content-type": "application/json;odata=verbose"
+                                                            },
+                                                            "method": "PATCH",
+                                                            "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                                                        },
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                    },
+                                                    "runAfter": {},
+                                                    "type": "ApiConnection"
+                                                }
+                                            },
+                                            "case": "Approved"
+                                        },
+                                        "New": {
+                                            "actions": {
+                                                "New_item_is_Membership": {
+                                                    "actions": {
+                                                        "Send_mail_to_approver_after_new_item_created_MEMBERSHIP": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{variables('ApproverEMail')}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{variables('ApproverTitle')}<\\/p><p>A new Membership was added to the SharePoint of Competition Compliance – Controls on Membership and Controls on Engaging with Competitors for your review and your approval: <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong><br \\/>Membership Category: <strong>@{triggerBody()?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('EditFormURL'),triggerBody()?['ID'])}'>here<\\/a> for details and to respond to the task.<\\/p>\",  \n\t\t\"Subject\": \"SharePoint approval of new Membership\"  \n\t}\n}",
+                                                                    "headers": {
+                                                                        "accept": "application/json;odata=verbose",
+                                                                        "content-type": "application/json;odata=verbose"
+                                                                    },
+                                                                    "method": "POST",
+                                                                    "uri": "@parameters('EmailEndpoint')"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                            },
+                                                            "runAfter": {
+                                                                "Send_mail_to_author_after_new_item_created_MEMBERSHIP": [
+                                                                    "Succeeded"
+                                                                ]
+                                                            },
+                                                            "type": "ApiConnection"
+                                                        },
+                                                        "Send_mail_to_author_after_new_item_created_MEMBERSHIP": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Thank you for your submission of a new Membership: <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong><br \\/>Membership Category: <strong>@{triggerBody()?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>Your request will now be routed to your Regional CEO for approval.<\\/p><p>In case you have any questions in the meantime, please contact your Regional Compliance Officer: <strong>@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['Title']}<\\/strong><\\/p>\",  \n\t\t\"Subject\": \"SharePoint submission confirmation of new Membership\"  \n\t}\n}",
+                                                                    "headers": {
+                                                                        "accept": "application/json;odata=verbose",
+                                                                        "content-type": "application/json;odata=verbose"
+                                                                    },
+                                                                    "method": "POST",
+                                                                    "uri": "@parameters('EmailEndpoint')"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                            },
+                                                            "runAfter": {},
+                                                            "type": "ApiConnection"
+                                                        }
+                                                    },
+                                                    "else": {
+                                                        "actions": {
+                                                            "Send_mail_to_approver_after_new_item_created_ENGAGING": {
+                                                                "inputs": {
+                                                                    "body": {
+                                                                        "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{variables('ApproverEMail')}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{variables('ApproverTitle')}<\\/p><p>A meeting/ engagement involving competitors approval request was added to the SharePoint of Competition Compliance – Controls on Membership and Controls on Engaging with Competitors for your review and your approval: <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('EditFormURL'),triggerBody()?['ID'])}'>here<\\/a> for details and to respond to the task.<\\/p>\",  \n\t\t\"Subject\": \"SharePoint approval of meeting/ engagement involving competitors\"  \n\t}\n}",
+                                                                        "headers": {
+                                                                            "accept": "application/json;odata=verbose",
+                                                                            "content-type": "application/json;odata=verbose"
+                                                                        },
+                                                                        "method": "POST",
+                                                                        "uri": "@parameters('EmailEndpoint')"
+                                                                    },
+                                                                    "host": {
+                                                                        "connection": {
+                                                                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                        }
+                                                                    },
+                                                                    "method": "post",
+                                                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                                },
+                                                                "runAfter": {
+                                                                    "Send_mail_to_author_after_new_item_created_ENGAGING": [
+                                                                        "Succeeded"
+                                                                    ]
+                                                                },
+                                                                "type": "ApiConnection"
+                                                            },
+                                                            "Send_mail_to_author_after_new_item_created_ENGAGING": {
+                                                                "inputs": {
+                                                                    "body": {
+                                                                        "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Thank you for your submission of an approval request of meeting/ engagement involving competitors: <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong><\\/p><p>Your request will now be routed to your Regional CEO for approval.<\\/p><p>In case you have any questions in the meantime, please contact your Regional Compliance Officer: <strong>@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['Title']}<\\/strong><\\/p>\",  \n\t\t\"Subject\": \"SharePoint submission confirmation of meeting/ engagement involving competitors\"  \n\t}\n}",
+                                                                        "headers": {
+                                                                            "accept": "application/json;odata=verbose",
+                                                                            "content-type": "application/json;odata=verbose"
+                                                                        },
+                                                                        "method": "POST",
+                                                                        "uri": "@parameters('EmailEndpoint')"
+                                                                    },
+                                                                    "host": {
+                                                                        "connection": {
+                                                                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                        }
+                                                                    },
+                                                                    "method": "post",
+                                                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "ApiConnection"
+                                                            }
+                                                        }
+                                                    },
+                                                    "expression": {
+                                                        "and": [
+                                                            {
+                                                                "equals": [
+                                                                    "@triggerBody()?['EngagementType']?['Value']",
+                                                                    "Membership"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "runAfter": {
+                                                        "Set_request_to_Await_CEO_approval_REST_API": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "If"
+                                                },
+                                                "Set_request_to_Await_CEO_approval_REST_API": {
+                                                    "inputs": {
+                                                        "body": {
+                                                            "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ApprovalStatus:\"@{variables('AwaitApprovalStatus')}\",\n   TaskForId: { results: [@{variables('ApproverID')}] },\n   Updated: false\n }",
+                                                            "headers": {
+                                                                "IF-MATCH": "*",
+                                                                "accept": "application/json;odata=verbose",
+                                                                "content-type": "application/json;odata=verbose"
+                                                            },
+                                                            "method": "PATCH",
+                                                            "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                                                        },
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                    },
+                                                    "runAfter": {},
+                                                    "type": "ApiConnection"
+                                                }
+                                            },
+                                            "case": "New"
+                                        },
+                                        "Reactivated": {
+                                            "actions": {
+                                                "Reactivated_item_is_Membership": {
+                                                    "actions": {
+                                                        "Send_mail_to_approver_after_reactivation_MEMBERSHIP": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{variables('ApproverEMail')}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{variables('ApproverTitle')}<\\/p><p>A Membership was expired and re-activated by the country compliance coordinator (or country SharePoint designated user) in the SharePoint of Competition Compliance – Controls on Membership and Controls on Engaging with Competitors for your review and your approval: <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong><br \\/>Membership Category: <strong>@{triggerBody()?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('EditFormURL'),triggerBody()?['ID'])}'>here<\\/a> for details and to respond to the task.<\\/p>\",  \n\t\t\"Subject\": \"SharePoint approval of Re-activated Membership\"  \n\t}\n}",
+                                                                    "headers": {
+                                                                        "accept": "application/json;odata=verbose",
+                                                                        "content-type": "application/json;odata=verbose"
+                                                                    },
+                                                                    "method": "POST",
+                                                                    "uri": "@parameters('EmailEndpoint')"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                            },
+                                                            "runAfter": {},
+                                                            "type": "ApiConnection"
+                                                        }
+                                                    },
+                                                    "else": {
+                                                        "actions": {
+                                                            "ENGAGING_REACTIVATION": {
+                                                                "inputs": {
+                                                                    "runError": {
+                                                                        "code": "NOT_ALLOWED_REACTIVATION",
+                                                                        "message": "Reactivation is not allowed for this type of request"
+                                                                    },
+                                                                    "runStatus": "Failed"
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "Terminate"
+                                                            }
+                                                        }
+                                                    },
+                                                    "expression": {
+                                                        "and": [
+                                                            {
+                                                                "equals": [
+                                                                    "@triggerBody()?['EngagementType']?['Value']",
+                                                                    "Membership"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "runAfter": {
+                                                        "Set_request_to_Await_CEO_approval_after_reactivation_REST_API": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "If"
+                                                },
+                                                "Set_request_to_Await_CEO_approval_after_reactivation_REST_API": {
+                                                    "inputs": {
+                                                        "body": {
+                                                            "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ApprovalStatus:\"@{variables('AwaitApprovalStatus')}\",\n   TaskForId: { results: [@{variables('ApproverID')}] },\n   Updated: false\n }",
+                                                            "headers": {
+                                                                "IF-MATCH": "*",
+                                                                "accept": "application/json;odata=verbose",
+                                                                "content-type": "application/json;odata=verbose"
+                                                            },
+                                                            "method": "PATCH",
+                                                            "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                                                        },
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                    },
+                                                    "runAfter": {},
+                                                    "type": "ApiConnection"
+                                                }
+                                            },
+                                            "case": "Reactivated"
+                                        },
+                                        "Reapproved": {
+                                            "actions": {
+                                                "Reapproved_item_is_Membership": {
+                                                    "actions": {
+                                                        "Send_mail_to_author_about_Reapproved_MEMBERSHIP": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Please be informed that your submission of the Re-activated Membership <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong> was <strong>approved<\\/strong> by your Regional CEO and recorded in the SharePoint of Competition Compliance - Controls on Membership and Controls on Engaging with Competitors<br \\/>Comments: <strong>@{triggerBody()?['RejectComment']}<\\/strong><br \\/>Membership Category: <strong>@{triggerBody()?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>Click <a href='@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}'>here<\\/a> to view the record.<br \\/>Please also ensure that this record is maintained up-to-date and accurate. Any expired membership will need to go through the approval process of Competition Compliance - Controls on Membership and Controls on Engaging with Competitors again.<\\/p>\",  \n\t\t\"Subject\": \"Your Membership re-activation request has been approved\"  \n\t}\n}",
+                                                                    "headers": {
+                                                                        "accept": "application/json;odata=verbose",
+                                                                        "content-type": "application/json;odata=verbose"
+                                                                    },
+                                                                    "method": "POST",
+                                                                    "uri": "@parameters('EmailEndpoint')"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                            },
+                                                            "runAfter": {},
+                                                            "type": "ApiConnection"
+                                                        }
+                                                    },
+                                                    "else": {
+                                                        "actions": {
+                                                            "ENGAGING_APPROVED": {
+                                                                "inputs": {
+                                                                    "runError": {
+                                                                        "code": "NOT_ALLOWED_APPROVED",
+                                                                        "message": "Reactivation is not allowed for this type of request"
+                                                                    },
+                                                                    "runStatus": "Failed"
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "Terminate"
+                                                            }
+                                                        }
+                                                    },
+                                                    "expression": {
+                                                        "and": [
+                                                            {
+                                                                "equals": [
+                                                                    "@triggerBody()?['EngagementType']?['Value']",
+                                                                    "Membership"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "runAfter": {
+                                                        "Set_request_to_approved_after_reactivation_REST_API": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "If"
+                                                },
+                                                "Set_request_to_approved_after_reactivation_REST_API": {
+                                                    "inputs": {
+                                                        "body": {
+                                                            "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ApprovalStatus:\"Approved\",\n   MembershipStatus:\"Active\",\n   Updated: false\n }",
+                                                            "headers": {
+                                                                "IF-MATCH": "*",
+                                                                "accept": "application/json;odata=verbose",
+                                                                "content-type": "application/json;odata=verbose"
+                                                            },
+                                                            "method": "PATCH",
+                                                            "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                                                        },
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                    },
+                                                    "runAfter": {},
+                                                    "type": "ApiConnection"
+                                                }
+                                            },
+                                            "case": "Reapproved"
+                                        },
+                                        "Rejected": {
+                                            "actions": {
+                                                "Rejected_item_is_Membership": {
+                                                    "actions": {
+                                                        "Send_mail_to_author_about_REJECTED_MEMBERSHIP": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Please be informed that your submission of the new Membership <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong> was <strong>rejected<\\/strong> by your Regional CEO <strong>@{variables('ApproverTitle')}<\\/strong><br \\/>Comments: <strong>@{triggerBody()?['RejectComment']}<\\/strong><br \\/>Membership Category: <strong>@{triggerBody()?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>You can access the membership request <a href='@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}'>here<\\/a>.<br \\/>For re-submission, please ensure the joining of membership is of legitimate business need and benefit can be attained. . Details can be referred to Express Compliance Guideline – Competition Compliance – Controls on Memberships and Controls on Engaging with Competitors.<\\/p>\",  \n\t\t\"Subject\": \"Your Membership request has been rejected\"  \n\t}\n}",
+                                                                    "headers": {
+                                                                        "accept": "application/json;odata=verbose",
+                                                                        "content-type": "application/json;odata=verbose"
+                                                                    },
+                                                                    "method": "POST",
+                                                                    "uri": "@parameters('EmailEndpoint')"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                            },
+                                                            "runAfter": {},
+                                                            "type": "ApiConnection"
+                                                        }
+                                                    },
+                                                    "else": {
+                                                        "actions": {
+                                                            "Send_mail_to_author_about_REJECTED_ENGAGING": {
+                                                                "inputs": {
+                                                                    "body": {
+                                                                        "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Please be informed that your submission of the meeting/ engagement involving competitors <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong> was <strong>rejected<\\/strong> by your Regional CEO <strong>@{variables('ApproverTitle')}<\\/strong><br \\/>Comments: <strong>@{triggerBody()?['RejectComment']}<\\/strong><\\/p><p>You can access the membership request <a href='@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}'>here<\\/a>.<br \\/>For re-submission, please ensure all requirements of the Competition Compliance of engaging with Competitors have been satisfied. Details can be referred to Express Compliance Guideline – Competition Compliance – Controls on Memberships and Controls on Engaging with Competitors.<\\/p>\",  \n\t\t\"Subject\": \"Your meeting/ engagement involving competitors request has been rejected\"  \n\t}\n}",
+                                                                        "headers": {
+                                                                            "accept": "application/json;odata=verbose",
+                                                                            "content-type": "application/json;odata=verbose"
+                                                                        },
+                                                                        "method": "POST",
+                                                                        "uri": "@parameters('EmailEndpoint')"
+                                                                    },
+                                                                    "host": {
+                                                                        "connection": {
+                                                                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                        }
+                                                                    },
+                                                                    "method": "post",
+                                                                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "ApiConnection"
+                                                            }
+                                                        }
+                                                    },
+                                                    "expression": {
+                                                        "and": [
+                                                            {
+                                                                "equals": [
+                                                                    "@triggerBody()?['EngagementType']?['Value']",
+                                                                    "Membership"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "runAfter": {
+                                                        "Set_request_to_rejected_REST_API": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "If"
+                                                },
+                                                "Set_request_to_rejected_REST_API": {
+                                                    "inputs": {
+                                                        "body": {
+                                                            "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ApprovalStatus:\"Rejected\",\n   MembershipStatus:\"Not Active\",\n   Updated: false\n }",
+                                                            "headers": {
+                                                                "IF-MATCH": "*",
+                                                                "accept": "application/json;odata=verbose",
+                                                                "content-type": "application/json;odata=verbose"
+                                                            },
+                                                            "method": "PATCH",
+                                                            "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                                                        },
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                    },
+                                                    "runAfter": {},
+                                                    "type": "ApiConnection"
+                                                }
+                                            },
+                                            "case": "Rejected"
+                                        },
+                                        "Rerejected": {
+                                            "actions": {
+                                                "Rerejected_item_is_Membership": {
+                                                    "actions": {
+                                                        "Send_mail_to_author_about_rerejected_MEMBERSHIP": {
+                                                            "inputs": {
+                                                                "body": {
+                                                                    "body": "{  \n\t\"properties\": {  \n\t\t\"__metadata\": {  \n\t\t\t\"type\": \"SP.Utilities.EmailProperties\"  \n\t\t},  \n\t\t\"To\": {  \n\t\t\t\"results\": [\"@{triggerBody()?['Author']?['Email']}\"]  \n\t\t},  \n\t\t\"CC\": {\n\t\t\t\"results\": [\"@{body('Get_RegionsRCO_Item')?['d']?['results'][0]?['RCO']?['EMail']}\"]\n\t\t},\n\"BCC\": {\n\t\t\t\"results\": [\"louis.yeung@dhl.com\"]\n\t\t},\n\t\t\"Body\": \"<p>Dear @{triggerBody()?['Author']?['DisplayName']}<\\/p><p>Please be informed that your submission of the Re-activated Membership <strong>@{replace(triggerBody()?['OrganizationName'],'\"','''')}<\\/strong> was <strong>rejected<\\/strong> by your Regional CEO <strong>@{variables('ApproverTitle')}<\\/strong><br \\/>Comments: <strong>@{triggerBody()?['RejectComment']}<\\/strong><br \\/>Membership Category: <strong>@{triggerBody()?['MembershipCategory']?['Value']}<\\/strong><\\/p><p>You can access the membership request <a href='@{concat(parameters('ShPSiteURL'),parameters('DisplayFormURL'),triggerBody()?['ID'])}'>here<\\/a>.<br \\/>For re-submission, please ensure the joining of membership is of legitimate business need and benefit can be attained. . Details can be referred to Express Compliance Guideline – Competition Compliance – Controls on Memberships and Controls on Engaging with Competitors.<\\/p>\",  \n\t\t\"Subject\": \"Your Membership re-activation request has been rejected\"  \n\t}\n}",
+                                                                    "headers": {
+                                                                        "accept": "application/json;odata=verbose",
+                                                                        "content-type": "application/json;odata=verbose"
+                                                                    },
+                                                                    "method": "POST",
+                                                                    "uri": "@parameters('EmailEndpoint')"
+                                                                },
+                                                                "host": {
+                                                                    "connection": {
+                                                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                                    }
+                                                                },
+                                                                "method": "post",
+                                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                            },
+                                                            "runAfter": {},
+                                                            "type": "ApiConnection"
+                                                        }
+                                                    },
+                                                    "else": {
+                                                        "actions": {
+                                                            "ENGAGING_REJECTED": {
+                                                                "inputs": {
+                                                                    "runError": {
+                                                                        "code": "NOT_ALLOWED_REJECTED",
+                                                                        "message": "Reactivation is not allowed for this type of request"
+                                                                    },
+                                                                    "runStatus": "Failed"
+                                                                },
+                                                                "runAfter": {},
+                                                                "type": "Terminate"
+                                                            }
+                                                        }
+                                                    },
+                                                    "expression": {
+                                                        "and": [
+                                                            {
+                                                                "equals": [
+                                                                    "@triggerBody()?['EngagementType']?['Value']",
+                                                                    "Membership"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "runAfter": {
+                                                        "Set_request_to_rejected_after_reactivation_REST_API": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "If"
+                                                },
+                                                "Set_request_to_rejected_after_reactivation_REST_API": {
+                                                    "inputs": {
+                                                        "body": {
+                                                            "body": "{\n  \"__metadata\":{type:\"SP.Data.MembershipAdHocEngagementListItem\"},\n   ApprovalStatus:\"Rejected\",\n   MembershipStatus:\"Not Active\",\n   Updated: false\n }",
+                                                            "headers": {
+                                                                "IF-MATCH": "*",
+                                                                "accept": "application/json;odata=verbose",
+                                                                "content-type": "application/json;odata=verbose"
+                                                            },
+                                                            "method": "PATCH",
+                                                            "uri": "@{concat('_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')')}"
+                                                        },
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                                    },
+                                                    "runAfter": {},
+                                                    "type": "ApiConnection"
+                                                }
+                                            },
+                                            "case": "Rerejected"
+                                        }
+                                    },
+                                    "default": {
+                                        "actions": {
+                                            "END_WFSTATUS": {
+                                                "inputs": {
+                                                    "runError": {
+                                                        "code": "WFSTATUS_WRONG",
+                                                        "message": "Wrong value in WFStatus"
+                                                    },
+                                                    "runStatus": "Failed"
+                                                },
+                                                "runAfter": {},
+                                                "type": "Terminate"
+                                            }
+                                        }
+                                    },
+                                    "expression": "@triggerBody()?['WFStatus']?['Value']",
+                                    "runAfter": {
+                                        "Is_AVIATION": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Switch"
+                                }
+                            }
+                        },
+                        "expression": {
+                            "and": [
+                                {
+                                    "not": {
+                                        "equals": [
+                                            "@triggerBody()?['EngagementType']?['Value']",
+                                            "Membership"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "equals": [
+                                        "@triggerBody()?['AlreadyRegisteredParticipants']?['Value']",
+                                        "Yes"
+                                    ]
+                                },
+                                {
+                                    "equals": [
+                                        "@triggerBody()?['CEOApprovedAssociation']?['Value']",
+                                        "Yes"
+                                    ]
+                                }
+                            ]
+                        },
+                        "runAfter": {},
+                        "type": "If"
+                    }
+                },
+                "runAfter": {
+                    "Permissions": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Scope"
+            },
+            "Approver_EMail": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "ApproverEMail",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Changeset_guid": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Approver_ID": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "ApproverID",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Await_Approval_value": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Approver_Title": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "ApproverTitle",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Approver_EMail": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Await_Approval_value": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "AwaitApprovalStatus",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Approver_Title": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Batch_guid": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "BatchGUID",
+                            "type": "string",
+                            "value": "@{guid()}"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Changeset_guid": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "ChangesetGUID",
+                            "type": "string",
+                            "value": "@{guid()}"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Batch_guid": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Permissions": {
+                "actions": {
+                    "REGION": {
+                        "cases": {
+                            "AM": {
+                                "actions": {
+                                    "AM_Batch_call_for_permission": {
+                                        "inputs": {
+                                            "body": {
+                                                "body": "@{concat('--batch_',variables('BatchGUID'))}\n@{concat('Content-Type: multipart/mixed; boundary=changeset_',variables('ChangesetGUID'))}\nContent-Transfer-Encoding: binary\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_AM_RCO'),',roleDefId=',parameters('FullControlRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odata=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_AM_CCC'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('RegionalCEOs'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'),'--')}\n\n@{concat('--batch_',variables('BatchGUID'),'--')}",
+                                                "headers": {
+                                                    "content-type": "@{concat('multipart/mixed; boundary=batch_',variables('BatchGUID'))}"
+                                                },
+                                                "method": "POST",
+                                                "uri": "/_api/$batch"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "case": "AM"
+                            },
+                            "APEC": {
+                                "actions": {
+                                    "APEC_Batch_call_for_permission": {
+                                        "inputs": {
+                                            "body": {
+                                                "body": "@{concat('--batch_',variables('BatchGUID'))}\n@{concat('Content-Type: multipart/mixed; boundary=changeset_',variables('ChangesetGUID'))}\nContent-Transfer-Encoding: binary\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_APEC_RCO'),',roleDefId=',parameters('FullControlRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odata=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_APEC_CCC'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('RegionalCEOs'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'),'--')}\n\n@{concat('--batch_',variables('BatchGUID'),'--')}",
+                                                "headers": {
+                                                    "content-type": "@{concat('multipart/mixed; boundary=batch_',variables('BatchGUID'))}"
+                                                },
+                                                "method": "POST",
+                                                "uri": "/_api/$batch"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "case": "APEC"
+                            },
+                            "CN": {
+                                "actions": {
+                                    "CN_Batch_call_for_permission": {
+                                        "inputs": {
+                                            "body": {
+                                                "body": "@{concat('--batch_',variables('BatchGUID'))}\n@{concat('Content-Type: multipart/mixed; boundary=changeset_',variables('ChangesetGUID'))}\nContent-Transfer-Encoding: binary\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_CN_RCO'),',roleDefId=',parameters('FullControlRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odata=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_CN_CCC'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('RegionalCEOs'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'),'--')}\n\n@{concat('--batch_',variables('BatchGUID'),'--')}",
+                                                "headers": {
+                                                    "content-type": "@{concat('multipart/mixed; boundary=batch_',variables('BatchGUID'))}"
+                                                },
+                                                "method": "POST",
+                                                "uri": "/_api/$batch"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "case": "CN"
+                            },
+                            "EU": {
+                                "actions": {
+                                    "EU_Batch_call_for_permission": {
+                                        "inputs": {
+                                            "body": {
+                                                "body": "@{concat('--batch_',variables('BatchGUID'))}\n@{concat('Content-Type: multipart/mixed; boundary=changeset_',variables('ChangesetGUID'))}\nContent-Transfer-Encoding: binary\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_EU_RCO'),',roleDefId=',parameters('FullControlRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odata=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_EU_CCC'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('RegionalCEOs'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'),'--')}\n\n@{concat('--batch_',variables('BatchGUID'),'--')}",
+                                                "headers": {
+                                                    "content-type": "@{concat('multipart/mixed; boundary=batch_',variables('BatchGUID'))}"
+                                                },
+                                                "method": "POST",
+                                                "uri": "/_api/$batch"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "case": "EU"
+                            },
+                            "GLOBAL": {
+                                "actions": {
+                                    "GLOBAL_Batch_call_for_permission": {
+                                        "inputs": {
+                                            "body": {
+                                                "body": "@{concat('--batch_',variables('BatchGUID'))}\n@{concat('Content-Type: multipart/mixed; boundary=changeset_',variables('ChangesetGUID'))}\nContent-Transfer-Encoding: binary\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_Global_RCO'),',roleDefId=',parameters('FullControlRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odata=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_Global_CCC'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('RegionalCEOs'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'),'--')}\n\n@{concat('--batch_',variables('BatchGUID'),'--')}",
+                                                "headers": {
+                                                    "content-type": "@{concat('multipart/mixed; boundary=batch_',variables('BatchGUID'))}"
+                                                },
+                                                "method": "POST",
+                                                "uri": "/_api/$batch"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "case": "GLOBAL"
+                            },
+                            "MENA": {
+                                "actions": {
+                                    "MENA_Batch_call_for_permission": {
+                                        "inputs": {
+                                            "body": {
+                                                "body": "@{concat('--batch_',variables('BatchGUID'))}\n@{concat('Content-Type: multipart/mixed; boundary=changeset_',variables('ChangesetGUID'))}\nContent-Transfer-Encoding: binary\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_MENA_RCO'),',roleDefId=',parameters('FullControlRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odata=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_MENA_CCC'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('RegionalCEOs'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'),'--')}\n\n@{concat('--batch_',variables('BatchGUID'),'--')}",
+                                                "headers": {
+                                                    "content-type": "@{concat('multipart/mixed; boundary=batch_',variables('BatchGUID'))}"
+                                                },
+                                                "method": "POST",
+                                                "uri": "/_api/$batch"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "case": "MENA"
+                            },
+                            "SSA": {
+                                "actions": {
+                                    "SSA_Batch_call_for_permission": {
+                                        "inputs": {
+                                            "body": {
+                                                "body": "@{concat('--batch_',variables('BatchGUID'))}\n@{concat('Content-Type: multipart/mixed; boundary=changeset_',variables('ChangesetGUID'))}\nContent-Transfer-Encoding: binary\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_SSA_RCO'),',roleDefId=',parameters('FullControlRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odata=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('Region_SSA_CCC'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'))}\nContent-Type: application/http\nContent-Transfer-Encoding: binary\n\nPOST @{concat(parameters('ShPSiteURL'),'/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/roleassignments/addroleassignment(principalid=',parameters('RegionalCEOs'),',roleDefId=',parameters('ContributeRolePermission'),')', ' HTTP/1.1')}\nAccept: application/json;odata=verbose\nContent-Type: application/json;odate=verbose\n\n@{concat('--changeset_',variables('ChangesetGUID'),'--')}\n\n@{concat('--batch_',variables('BatchGUID'),'--')}",
+                                                "headers": {
+                                                    "content-type": "@{concat('multipart/mixed; boundary=batch_',variables('BatchGUID'))}"
+                                                },
+                                                "method": "POST",
+                                                "uri": "/_api/$batch"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "case": "SSA"
+                            }
+                        },
+                        "default": {
+                            "actions": {
+                                "END_REGION": {
+                                    "inputs": {
+                                        "runError": {
+                                            "code": "REGION_EMPTY",
+                                            "message": "Region is empty"
+                                        },
+                                        "runStatus": "Failed"
+                                    },
+                                    "runAfter": {},
+                                    "type": "Terminate"
+                                }
+                            }
+                        },
+                        "expression": "@triggerBody()?['Region']?['Value']",
+                        "runAfter": {
+                            "Reset_permissions": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "Switch"
+                    },
+                    "Reset_permissions": {
+                        "inputs": {
+                            "body": {
+                                "headers": {
+                                    "accept": "application/json;odata=verbose",
+                                    "content-type": "application/json;odata=verbose"
+                                },
+                                "method": "POST",
+                                "uri": "@{concat('/_api/web/lists(''',parameters('MembershipListGUID'),''')/Items(',triggerBody()?['ID'],')/breakroleinheritance(copyRoleAssignments=false, clearSubscopes=true)')}"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/httprequest"
+                        },
+                        "runAfter": {},
+                        "type": "ApiConnection"
+                    }
+                },
+                "runAfter": {
+                    "Approver_ID": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Scope"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            },
+            "ContributeRolePermission": {
+                "defaultValue": "1073741827",
+                "type": "String"
+            },
+            "DisplayFormURL": {
+                "defaultValue": "/SitePages/Membership-FORM.aspx?FormMode=Display&ItemId=",
+                "type": "String"
+            },
+            "EditFormURL": {
+                "defaultValue": "/SitePages/Membership-FORM.aspx?FormMode=Edit&ItemId=",
+                "type": "String"
+            },
+            "EmailEndpoint": {
+                "defaultValue": "/_api/SP.Utilities.Utility.SendEmail",
+                "type": "String"
+            },
+            "EntityListGUID": {
+                "defaultValue": "f99164e3-76ca-4c18-812d-9c2b2c28287e",
+                "type": "String"
+            },
+            "FullControlRolePermission": {
+                "defaultValue": "1073741829",
+                "type": "String"
+            },
+            "MembershipListGUID": {
+                "defaultValue": "bac61f95-dd1c-4d85-bf79-5e4c1f14efe3",
+                "type": "String"
+            },
+            "Region_AM_CCC": {
+                "defaultValue": "745",
+                "type": "String"
+            },
+            "Region_AM_RCO": {
+                "defaultValue": "743",
+                "type": "String"
+            },
+            "Region_APEC_CCC": {
+                "defaultValue": "740",
+                "type": "String"
+            },
+            "Region_APEC_RCO": {
+                "defaultValue": "750",
+                "type": "String"
+            },
+            "Region_CN_CCC": {
+                "defaultValue": "757",
+                "type": "String"
+            },
+            "Region_CN_RCO": {
+                "defaultValue": "748",
+                "type": "String"
+            },
+            "Region_EU_CCC": {
+                "defaultValue": "741",
+                "type": "String"
+            },
+            "Region_EU_RCO": {
+                "defaultValue": "744",
+                "type": "String"
+            },
+            "Region_Global_CCC": {
+                "defaultValue": "756",
+                "type": "String"
+            },
+            "Region_Global_RCO": {
+                "defaultValue": "1012",
+                "type": "String"
+            },
+            "Region_MENA_CCC": {
+                "defaultValue": "751",
+                "type": "String"
+            },
+            "Region_MENA_RCO": {
+                "defaultValue": "747",
+                "type": "String"
+            },
+            "Region_SSA_CCC": {
+                "defaultValue": "753",
+                "type": "String"
+            },
+            "Region_SSA_RCO": {
+                "defaultValue": "746",
+                "type": "String"
+            },
+            "RegionalCEOs": {
+                "defaultValue": "755",
+                "type": "String"
+            },
+            "RegionsRCOListGUID": {
+                "defaultValue": "7fa670f8-0f45-45ca-a64d-2fee82c5a019",
+                "type": "String"
+            },
+            "ShPSiteURL": {
+                "defaultValue": "https://dpdhl.sharepoint.com/sites/EXPCompetitionCompliance",
+                "type": "String"
+            }
+        },
+        "triggers": {
+            "When_item_is_CREATED_or_UPDATED": {
+                "conditions": [
+                    {
+                        "expression": "@equals(true,triggerBody()?['Updated'])"
+                    }
+                ],
+                "evaluatedRecurrence": {
+                    "frequency": "Minute",
+                    "interval": 3
+                },
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('ShPSiteURL')))}/tables/@{encodeURIComponent(encodeURIComponent(parameters('MembershipListGUID')))}/onupdateditems"
+                },
+                "recurrence": {
+                    "frequency": "Minute",
+                    "interval": 3
+                },
+                "splitOn": "@triggerBody()?['value']",
+                "type": "ApiConnection"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "sharepointonline": {
+                    "connectionId": "/subscriptions/ab219ef3-3068-4d44-8026-1b72f5ad28c9/resourceGroups/ITS-ECC-9010/providers/Microsoft.Web/connections/sharepointonline",
+                    "connectionName": "sharepointonline",
+                    "id": "/subscriptions/ab219ef3-3068-4d44-8026-1b72f5ad28c9/providers/Microsoft.Web/locations/westeurope/managedApis/sharepointonline"
+                }
+            }
+        }
+    }
+}

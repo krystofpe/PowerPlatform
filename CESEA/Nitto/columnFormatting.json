@@ -1,0 +1,9 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json",
+    "elmType": "a",
+    "attributes": {
+      "href": "='https://apps.powerapps.com/play/e/default-bcd2db6c-5640-4800-be24-cae210698407/a/8a8ef2dd-9949-40e4-a499-d0080d406521?tenantId=bcd2db6c-5640-4800-be24-cae210698407&hint=92a80c53-a535-47fd-b74c-7fb2070e7767&sourcetime=1697913580652&Item=' + [$Title]",
+      "target": "_blank"
+    },
+    "txtContent": "[$Title]"
+  }

@@ -1,0 +1,1 @@
+base64ToBinary(items('ForAllAttachments')?['contentBytes'])

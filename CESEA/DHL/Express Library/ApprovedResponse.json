@@ -1,0 +1,15 @@
+[
+    {
+      "responder": {
+        "id": "7a609e4c-647e-4f04-ae4d-dd110e15a187",
+        "displayName": "Kryštof Pěnka DEV CESEA",
+        "email": "krystof.penka@dev-cesea.cz",
+        "tenantId": "b6202ddc-5f7f-4d41-9f09-4d763f1e29a0",
+        "userPrincipalName": "krystof.penka@dev-cesea.cz"
+      },
+      "requestDate": "2023-05-30T16:39:17Z",
+      "responseDate": "2023-05-30T16:40:09Z",
+      "approverResponse": "Approve",
+      "comments": "Approved."
+    }
+  ]

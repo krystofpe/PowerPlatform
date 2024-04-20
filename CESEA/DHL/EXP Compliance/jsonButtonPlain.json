@@ -1,0 +1,28 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/column-formatting.schema.json",
+  "elmType": "a",
+  "attributes": {
+    "class": "ms-fontColor-themePrimary ms-fontColor-themeDarker--hover",
+    "target": "_blank",
+    "href": "='https://apps.powerapps.com/play/e/3875c7c6-af74-e9d9-960d-d8fa0dd6ea50/a/9107f975-f1c0-491f-a516-a49af79a5ea5?tenantId=cd99fef8-1cd3-4a2a-9bdf-15531181d65e&source=portal?FormType=Gift&ID=' + [$ID]"
+  },
+  "style": {
+    "border": "none",
+    "background-color": "transparent",
+    "cursor": "pointer"
+  },
+  "children": [
+        {
+      "elmType": "span",
+      "style": {
+        "overflow": "hidden",
+        "text-overflow": "ellipsis",
+        "padding": "0px 20px"
+      },
+      "txtContent": "Open",
+      "attributes": {
+        "class": "sp-field-fontSizeSmall sp-css-color-LightGrayFont sp-field-bold"
+      }
+    }
+  ]
+}
