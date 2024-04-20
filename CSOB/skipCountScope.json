@@ -1,0 +1,120 @@
+{
+    "id": "3f1a1f92-fbe3-4675-997a-c57ab26efea9",
+    "brandColor": "#486991",
+    "connectionReferences": {
+        "shared_excelonlinebusiness_1": {
+            "connection": {
+                "id": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness/connections/6890ee668a2f456f9405a7e357fc0fa0"
+            }
+        },
+        "shared_office365": {
+            "connection": {
+                "id": "/providers/Microsoft.PowerApps/apis/shared_office365/connections/shared-office365-dcab87a9-09b5-47aa-b543-8e5175c6a7af"
+            }
+        },
+        "shared_sharepointonline": {
+            "connection": {
+                "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline/connections/c6137399265648a9a2867541b84899b4"
+            }
+        },
+        "shared_excelonlinebusiness": {
+            "connection": {
+                "id": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness/connections/shared-excelonlinebu-8d2660ba-6962-469f-86fd-5870296bf52f"
+            }
+        }
+    },
+    "connectorDisplayName": "Control",
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDMyIDMyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPg0KIDxwYXRoIGQ9Im0wIDBoMzJ2MzJoLTMyeiIgZmlsbD0iIzQ4Njk5MSIvPg0KIDxnIGZpbGw9IiNmZmYiPg0KICA8cGF0aCBkPSJNMTEuNDI5IDIwLjMxaDEyLjU3MXYxLjE0M2gtMTMuNzE0di0zLjU0M2wtMS40ODYgMS40ODYtLjgtLjggMi44NTctMi44NTcgMi44NTcgMi44NTctLjguOC0xLjQ4Ni0xLjQ4NnoiLz4NCiAgPHBhdGggZD0iTTIyLjg1NyAyMS4zNjh2LTkuODM2aC04di0uOTg0aDkuMTQzdjEwLjgyIi8+DQogIDxwYXRoIGQ9Im05LjE0MyAxMC41NDhoMy40Mjl2My40MjloLTMuNDI5eiIvPg0KIDwvZz4NCjwvc3ZnPg0K",
+    "isTrigger": false,
+    "operationName": "Do_untils_-_create_items",
+    "operationDefinition": {
+        "type": "Until",
+        "expression": "@equals(variables('isContinue'), false)",
+        "limit": {
+            "count": 5000,
+            "timeout": "PT1H"
+        },
+        "actions": {
+            "If_5000": {
+                "type": "If",
+                "expression": {
+                    "less": [
+                        "@length(body('Select_-_get_array'))",
+                        5000
+                    ]
+                },
+                "actions": {
+                    "Set_variable_-_terminate_loop": {
+                        "type": "SetVariable",
+                        "inputs": {
+                            "name": "isContinue",
+                            "value": "@false"
+                        },
+                        "runAfter": {},
+                        "metadata": {
+                            "operationMetadataId": "22959d05-cee1-45ef-aa7f-52e83ab2361f"
+                        }
+                    }
+                },
+                "runAfter": {},
+                "else": {
+                    "actions": {
+                        "Increment_variable_-_skipCount": {
+                            "type": "IncrementVariable",
+                            "inputs": {
+                                "name": "skipCount",
+                                "value": 5000
+                            },
+                            "runAfter": {},
+                            "metadata": {
+                                "operationMetadataId": "8b6a89f3-cdcb-47f8-94ce-8d60ccfe9fad"
+                            }
+                        }
+                    }
+                },
+                "metadata": {
+                    "operationMetadataId": "248e1f25-5a9b-4397-95b8-f0ebdb91f9c0"
+                }
+            },
+            "For_each_-_create_items": {
+                "type": "Foreach",
+                "foreach": "@body('Select_-_get_array')",
+                "actions": {
+                    "Create_item": {
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connectionName": "shared_sharepointonline",
+                                "operationId": "PostItem",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                            },
+                            "parameters": {
+                                "dataset": "https://kbcgroup.sharepoint.com/sites/csob-aplikace/240014",
+                                "table": "c57c28ec-5f83-4930-9b05-c09c26559722",
+                                "item/Title": "@items('For_each_-_create_items')?['Test']"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                        },
+                        "runAfter": {}
+                    }
+                },
+                "runAfter": {
+                    "If_5000": [
+                        "Succeeded"
+                    ]
+                },
+                "metadata": {
+                    "operationMetadataId": "5cc2030a-62fa-478a-8400-5b4c28919889"
+                }
+            }
+        },
+        "runAfter": {
+            "Initialize_isContinue": [
+                "Succeeded"
+            ]
+        },
+        "metadata": {
+            "operationMetadataId": "5b1f817c-2589-4b75-ad59-507268c292fb"
+        }
+    }
+}
