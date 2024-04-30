@@ -30,6 +30,7 @@ function main(workbook: ExcelScript.Workbook,
             currentObject.Poznamka, currentObject.Zmena, currentObject.Odeslano, currentObject.Odeslano_stav, currentObject.Pobocka, currentObject.NPS, currentObject.NPS_komentar
             , currentObject.CES, currentObject.CES_komentar, currentObject.Kategorie]];
 
+        //Starterrow + i needs to be edited according to input columns
         const rowRange = `A${starterrow + i}:W${starterrow + i}`;
         selectedSheet.getRange(rowRange).setValues(formattedrow);
     }
